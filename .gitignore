@@ -3,6 +3,7 @@ venv/
 
 dataset/*
 
+.DS_Store
 Outline.md
 
 
