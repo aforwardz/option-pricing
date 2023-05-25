@@ -2,6 +2,7 @@
 venv/
 
 dataset/*
+paper/*
 
 .DS_Store
 Outline.md
