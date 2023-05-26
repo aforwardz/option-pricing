@@ -11,3 +11,8 @@
   - Benchmark: B-S-M, Heston, BP, CNN, LSTM
   - Deep Model: Transformer, TFT, Informer, Autoformer, Pyraformer, TiDE(MLP)
 - [ ] 实验+结果记录
+
+
+### SJTUThesis-LaTex 来自[Github](https://github.com/sjtug/SJTUThesis)，感谢校友LaTex模板
+
+
