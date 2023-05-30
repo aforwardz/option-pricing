@@ -3,6 +3,9 @@ from scipy.stats import norm
 
 N = norm.cdf
 
+# Merton Jump Diffusion Model
+# https://www.codearmo.com/python-tutorial/merton-jump-diffusion-model-python
+
 
 class BlackScholesMerton:
 
