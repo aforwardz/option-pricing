@@ -15,4 +15,7 @@
 
 ### SJTUThesis-LaTex 来自[Github](https://github.com/sjtug/SJTUThesis)，感谢校友LaTex模板
 
+学术垃圾生产状态:persevere::neutral_face::sleeping::expressionless::tired_face::exploding_head::raised_eyebrow::monocle_face::roll_eyes:
+
+2023.6.9：最近在写基础理论，勉强算顺利，还剩一半
 
