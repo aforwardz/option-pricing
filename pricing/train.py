@@ -17,7 +17,7 @@ def describe_data():
 def construct_train_val_data(columns, window_size=10):
     raw_df = pd.read_csv(os.path.join(MODELING_DIR, 'sz50etf_option_full.csv'))
 
-    for gdf in raw_df.groupby('期权代码'):
+    for _, gdf in raw_df.groupby('期权代码'):
         gdf = gdf.sort_values('日期')
 
 
