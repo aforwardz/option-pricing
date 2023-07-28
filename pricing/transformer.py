@@ -1,4 +1,4 @@
-import pandas as pd
+import os
 import torch
 import torch.nn as nn
 import math
@@ -9,35 +9,30 @@ import matplotlib.pyplot as plt
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DATASET_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'dataset')
+MODELING_DIR = os.path.join(DATASET_DIR, 'modeling')
 
 
-def split_dataset_into_seq(dataset, start_index=0, end_index=None, history_size=6, step=1):
+def split_dataset_into_seq(dataset, start_index=0, end_index=None, window_size=6, step=1):
     '''split the dataset to have sequence of observations of length history size'''
     data = []
-    start_index = start_index + history_size
+    start_index = start_index + window_size
     if end_index is None:
         end_index = len(dataset)
     for i in range(start_index, end_index):
-        indices = range(i - history_size, i, step)
+        indices = range(i - window_size, i, step)
         data.append(dataset[indices])
     return np.array(data)
 
 
-def split_dataset(data, TRAIN_SPLIT=0.7, VAL_SPLIT=0.5, save_path=None):
+def split_dataset(data_seq, TRAIN_SPLIT=0.7, VAL_SPLIT=0.5, save_path=None):
     '''split the dataset into train, val and test splits'''
-    # normalization
-    data_mean = data.mean(axis=0)
-    data_std = data.std(axis=0)
-    data = (data - data_mean) / data_std
-    stats = (data_mean, data_std)
-
-    data_in_seq = split_dataset_into_seq(data, start_index=0, end_index=None, history_size=6, step=1)
 
     # split between validation dataset and test set:
-    train_data, val_data = train_test_split(data_in_seq, train_size=TRAIN_SPLIT, shuffle=True, random_state=123)
+    train_data, val_data = train_test_split(data_seq, train_size=TRAIN_SPLIT, shuffle=True, random_state=123)
     val_data, test_data = train_test_split(val_data, train_size=VAL_SPLIT, shuffle=True, random_state=123)
 
-    return train_data, val_data, test_data
+    return np.float32(train_data), np.float32(val_data), np.float32(test_data)
 
 
 def split_fn(chunk):
@@ -47,7 +42,7 @@ def split_fn(chunk):
     return inputs, targets
 
 
-def data_to_dataset(train_data, val_data, test_data, batch_size=32, target_features=list(range(2))):
+def data_to_dataset(train_data, val_data, test_data, batch_size=32, target_features=[-1]):
     '''
     split each train split into inputs and targets
     convert each train split into a tf.dataset
@@ -203,8 +198,7 @@ class Transformer(nn.Module):
         x = self.dropout(x)
 
         for i in range(self.num_layers):
-            x, block = self.dec_layers[i](x=x,
-                                          look_ahead_mask=mask)
+            x, block = self.dec_layers[i](x=x, look_ahead_mask=mask)
             attention_weights['decoder_layer{}'.format(i + 1)] = block
 
         x = self.output_projection(x)
@@ -276,25 +270,21 @@ def test_transformer(model, test_dataset):
 
 
 if __name__ == '__main__':
-    df = pd.read_csv("")
-    df = df.drop(['during_days', 'total_net_value'], axis=1)
-    df = df[df['product_pid'] == 'product12']
-    df = df.set_index(['transaction_date'])
-    df = df.drop(['product_pid'], axis=1)
-    df = df.astype(np.float32)
+    labels = ['行权价', '涨跌幅', '成交额', '前结算价', '开盘价', '最高价', '最低价',
+              '结算价', '成交量', '持仓量', '涨停价格', '跌停价格', 'Delta', 'Gamma',
+              'Vega', 'Theta', 'Rho', 'ETF收盘价', '收盘价']
 
-    data = df.values
-    print(data.shape)
+    data = np.load(os.path.join(MODELING_DIR, 'sz50etf_modeling.npy'))
+    print(data.dtype)
 
     train_data, val_data, test_data = split_dataset(data)
-    train_dataset, val_dataset, test_dataset = data_to_dataset(train_data, val_data, test_data)
+    train_dataset, val_dataset, test_dataset = data_to_dataset(train_data, val_data, test_data, target_features=[-1])
     print(train_data.shape, val_data.shape, test_data.shape)
     print(len(train_dataset), len(val_dataset), len(test_dataset))
 
     transformer = Transformer(num_layers=1, D=32, H=4, hidden_mlp_dim=32,
-                              inp_features=8, out_features=2, dropout_rate=0.1).to(device)
-    optimizer = torch.optim.RMSprop(transformer.parameters(),
-                                    lr=0.00005)
+                              inp_features=len(labels), out_features=1, dropout_rate=0.1).to(device)
+    optimizer = torch.optim.RMSprop(transformer.parameters(), lr=0.00005)
 
     transformer = train_transformer(transformer, train_dataset, val_dataset)
 
