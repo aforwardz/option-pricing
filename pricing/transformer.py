@@ -255,9 +255,9 @@ def test_transformer(model, test_dataset):
     test_preds = np.vstack(test_preds)
     np.mean(test_losses)
 
-    seq_len = 5
+    seq_len = 10
     index = 1
-    feature_num = 0
+    feature_num = -1
 
     x_test, _ = test_dataset.dataset.tensors
     x_test = x_test[index, :, feature_num].cpu().numpy()
@@ -275,12 +275,12 @@ if __name__ == '__main__':
               'Vega', 'Theta', 'Rho', 'ETF收盘价', '收盘价']
 
     data = np.load(os.path.join(MODELING_DIR, 'sz50etf_modeling.npy'))
-    print(data.dtype)
+    # print(data.shape)
 
     train_data, val_data, test_data = split_dataset(data)
     train_dataset, val_dataset, test_dataset = data_to_dataset(train_data, val_data, test_data, target_features=[-1])
-    print(train_data.shape, val_data.shape, test_data.shape)
-    print(len(train_dataset), len(val_dataset), len(test_dataset))
+    # print(train_data.shape, val_data.shape, test_data.shape)
+    # print(len(train_dataset), len(val_dataset), len(test_dataset))
 
     transformer = Transformer(num_layers=1, D=32, H=4, hidden_mlp_dim=32,
                               inp_features=len(labels), out_features=1, dropout_rate=0.1).to(device)
