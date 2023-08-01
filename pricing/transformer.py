@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import math
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
@@ -243,30 +244,42 @@ def train_transformer(model, train_dataset, val_dataset):
     return model
 
 
-def test_transformer(model, test_dataset):
-    test_losses, test_preds = [], []
+def eval_transformer(model, eval_dataset):
+    eval_losses, eval_preds = {'MSE': [], 'RMSE': [], 'MAE': []}, []
     model.eval()
-    for (x, y) in test_dataset:
+    for (x, y) in eval_dataset:
         S = x.shape[-2]
         y_pred, _ = model(x, mask=create_look_ahead_mask(S))
-        loss_test = torch.nn.MSELoss()(y_pred, y)  # (B,S)
-        test_losses.append(loss_test.item())
-        test_preds.append(y_pred.detach().cpu().numpy())
-    test_preds = np.vstack(test_preds)
-    np.mean(test_losses)
 
-    seq_len = 10
-    index = 1
-    feature_num = -1
+        mse_loss = torch.nn.MSELoss()(y_pred, y)
+        eval_losses['MSE'].append(mse_loss.item())
 
-    x_test, _ = test_dataset.dataset.tensors
-    x_test = x_test[index, :, feature_num].cpu().numpy()
-    pred = test_preds[index, :, feature_num]
-    x = np.linspace(1, seq_len, seq_len)
-    plt.plot(x, pred, 'red', lw=2, label='predictions for sample: {}'.format(index))
-    plt.plot(x, x_test, 'cyan', lw=2, label='ground-truth for sample: {}'.format(index))
-    plt.legend(fontsize=10)
-    plt.show()
+        eval_losses['RMSE'].append(np.sqrt(mse_loss.item()))
+
+        mae_loss = torch.nn.L1Loss()(y_pred, y)
+        eval_losses['MAE'].append(mae_loss.item())
+
+        eval_preds.append(y_pred.detach().cpu().numpy())
+
+    # eval_preds = np.vstack(eval_preds)
+    #
+    # seq_len = 10
+    # index = 1
+    # feature_num = -1
+    #
+    # x_eval, _ = eval_dataset.dataset.tensors
+    # x_eval = x_eval[index, :, feature_num].cpu().numpy()
+    # pred = eval_preds[index, :, feature_num]
+    # x = np.linspace(1, seq_len, seq_len)
+    # plt.plot(x, pred, 'red', lw=2, label='predictions for sample: {}'.format(index))
+    # plt.plot(x, x_eval, 'cyan', lw=2, label='ground-truth for sample: {}'.format(index))
+    # plt.legend(fontsize=10)
+    # plt.show()
+
+    loss_df = list((n, np.mean(losses)) for n, losses in eval_losses.items())
+    loss_df = pd.DataFrame(loss_df, columns=['评价指标', 'Transformer']).set_index(['评价指标'])
+
+    return loss_df
 
 
 if __name__ == '__main__':
@@ -282,11 +295,19 @@ if __name__ == '__main__':
     # print(train_data.shape, val_data.shape, test_data.shape)
     # print(len(train_dataset), len(val_dataset), len(test_dataset))
 
-    transformer = Transformer(num_layers=1, D=32, H=4, hidden_mlp_dim=32,
+    retrain = True
+    layer, d, h, mlp, bs = 1, 32, 4, 32, 32
+    model_file = 'out/transformer_L{}D{}H{}B{}.pth'.format(layer, d, h, mlp, bs)
+    transformer = Transformer(num_layers=layer, D=d, H=h, hidden_mlp_dim=mlp,
                               inp_features=len(labels), out_features=1, dropout_rate=0.1).to(device)
-    optimizer = torch.optim.RMSprop(transformer.parameters(), lr=0.00005)
+    if not retrain and os.path.isfile(model_file):
+        transformer.load_state_dict(torch.load(model_file))
+    else:
+        optimizer = torch.optim.RMSprop(transformer.parameters(), lr=0.00005)
 
-    transformer = train_transformer(transformer, train_dataset, val_dataset)
+        transformer = train_transformer(transformer, train_dataset, val_dataset)
 
-    test_transformer(transformer, test_dataset)
+        torch.save(transformer.state_dict(), 'out/transformer_L{}D{}H{}B{}.pth'.format(layer, d, h, mlp, bs))
+
+    eval_transformer(transformer, test_dataset)
 
