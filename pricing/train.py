@@ -68,15 +68,15 @@ def construct_train_val_data(columns, window_size=10):
 
 
 if __name__ == '__main__':
-    labels = ['行权价', '涨跌幅', '成交额', '前结算价', '开盘价', '最高价', '最低价',
-              '结算价', '成交量', '持仓量', '涨停价格', '跌停价格', 'Delta', 'Gamma',
-              'Vega', 'Theta', 'Rho', 'ETF收盘价', '收盘价']
+    features = ['行权价', '涨跌幅', '成交额', '前结算价', '开盘价', '结算价', '成交量', '持仓量',
+                'Delta', 'Gamma', 'Vega', 'Theta', 'Rho', 'ETF收盘价', 'ETF波动率', '国债利率',
+                '到期天数', '到期期限', '收盘价']  # r & BS price
 
-    # data = construct_train_val_data(labels, window_size=11)
-    #
-    # np.save(os.path.join(MODELING_DIR, 'sz50etf_modeling.npy'), data)
+    data = construct_train_val_data(features, window_size=11)
 
-    data = np.load(os.path.join(MODELING_DIR, 'sz50etf_modeling.npy'))
+    np.save(os.path.join(MODELING_DIR, 'sz50etf_modeling.npy'), data)
+
+    # data = np.load(os.path.join(MODELING_DIR, 'sz50etf_modeling.npy'))
 
 
 

@@ -13,7 +13,32 @@
 4. 其他数据
 
 
+## Features
+- 行权价 St
+- 涨跌幅 Chg
+- 成交额 TA
+- 开盘价 OP
+- 收盘价 CP
+- 结算价 SP
+- 成交量 TO
+- 持仓量 HO
+- Delta
+- Gamma
+- Vega
+- Theta
+- Rho
 
+
+- ETF收盘价 S
+- 国债利率 r
+- 波动率 vol
+- 到期天数 rt
+- 到期期限 rs
+- BS模型 BS
+
+
+
+## Others
 - 期权数据为前复权
 - xx
 
