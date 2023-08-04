@@ -30,8 +30,8 @@ def split_dataset(data_seq, TRAIN_SPLIT=0.7, VAL_SPLIT=0.5, save_path=None):
     '''split the dataset into train, val and test splits'''
 
     # split between validation dataset and test set:
-    train_data, val_data = train_test_split(data_seq, train_size=TRAIN_SPLIT, shuffle=True, random_state=123)
-    val_data, test_data = train_test_split(val_data, train_size=VAL_SPLIT, shuffle=True, random_state=123)
+    train_data, val_data = train_test_split(data_seq, train_size=TRAIN_SPLIT, shuffle=False)
+    val_data, test_data = train_test_split(val_data, train_size=VAL_SPLIT, shuffle=False)
 
     return np.float32(train_data), np.float32(val_data), np.float32(test_data)
 
