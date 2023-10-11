@@ -52,9 +52,9 @@ def data_to_dataset(train_data, val_data, test_data, batch_size=32, target_featu
     x_val, y_val = split_fn(val_data)
     x_test, y_test = split_fn(test_data)
     # selecting only the first 20 features for prediction:
-    y_train = y_train[:, :, target_features]
-    y_val = y_val[:, :, target_features]
-    y_test = y_test[:, :, target_features]
+    # y_train = y_train[:, :, target_features]
+    # y_val = y_val[:, :, target_features]
+    # y_test = y_test[:, :, target_features]
     train_dataset = torch.utils.data.TensorDataset(x_train, y_train)
     val_dataset = torch.utils.data.TensorDataset(x_val, y_val)
     test_dataset = torch.utils.data.TensorDataset(x_test, y_test)
